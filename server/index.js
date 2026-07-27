@@ -125,8 +125,7 @@ app.post('/api/generate', async (req, res) => {
   }
 });
 
-// Serve static files in production, but ONLY if not running on Vercel
-// (Vercel handles static file serving automatically at the edge)
+// Serve static files in production (skip if running as Vercel serverless function)
 if (process.env.NODE_ENV === 'production' && !process.env.VERCEL) {
   app.use(express.static(path.join(__dirname, '../client/dist')));
 
@@ -135,11 +134,12 @@ if (process.env.NODE_ENV === 'production' && !process.env.VERCEL) {
   });
 }
 
-// Only listen if not running in a Vercel Serverless environment
+// Only listen to port if not running as a Vercel serverless function
 if (!process.env.VERCEL) {
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
   });
 }
 
+// Export for Vercel Serverless
 export default app;
