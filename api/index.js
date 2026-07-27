@@ -18,7 +18,7 @@ app.use(cors());
 app.use(express.json());
 
 const groq = new Groq({
-  apiKey: process.env.GROQ_API_KEY,
+  apiKey: process.env.GROQ_API_KEY || 'missing_key', // Prevent crash on boot if Vercel env is missing
 });
 
 const StudyPackageSchema = z.object({
@@ -85,8 +85,13 @@ const callGroq = async (notes, retryError = null) => {
   return completion.choices[0]?.message?.content || '{}';
 };
 
-app.post('/api/generate', async (req, res) => {
+// Catch-all POST route to handle requests regardless of Vercel's internal URL rewrites
+app.post('*', async (req, res) => {
   try {
+    if (!process.env.GROQ_API_KEY || process.env.GROQ_API_KEY === 'missing_key') {
+      return res.status(500).json({ success: false, error: "GROQ_API_KEY is not configured on the server (Vercel Environment Variables)." });
+    }
+
     const { notes } = req.body;
     
     if (!notes || notes.trim().length === 0) {
