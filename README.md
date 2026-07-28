@@ -1,8 +1,9 @@
+Deployed Link:- https://flam-study-assistant-fu.vercel.app/
 # Study Assistant - Flam Frontend Internship Assignment
 
 An interactive, responsive Study Assistant app built with React (Vite) and an Express backend proxy. The application takes free-form text, sends it to the Groq API, and generates interactive 3D Flashcards and a smart Quiz with a Re-Test loop for wrong answers.
 
-## 🚀 Tech Stack
+## Tech Stack
 - **Frontend**: React, Vite, Plain CSS (Custom variables), Lucide Icons
 - **Backend**: Node.js, Express
 - **AI Integration**: Groq API (`llama-3.3-70b-versatile`), Zod (for schema validation)
@@ -47,21 +48,21 @@ npm start
 ```
 The frontend will run at `http://localhost:5173` and the backend at `http://localhost:3001`.
 
-## 🤖 AI Usage Note
+##  AI Usage Note
 This project was implemented with assistance from Antigravity AI. It handles:
 - Code generation and scaffolding for both frontend and backend.
 - Designing the custom Field Notebook UI in plain CSS and managing React state.
 - Integrating Defensive measures such as Zod schema validation and fetch request deduplication (`AbortController`).
 
-## 🛡️ Defensive Handling & Architecture
+##  Defensive Handling & Architecture
 - **API Key Security**: The Groq API key is never exposed in the browser. All requests are securely routed through the backend proxy.
 - **Zod Schema Validation**: The backend rigorously checks the JSON output from the LLM. If the generated package is malformed, it automatically requests a repair from the model.
 - **Stale Control**: `AbortController` in the React frontend safely terminates older pending requests if the user repeatedly spams the Generate button, preventing overlapping/stale state updates.
 - **LocalStorage**: Generated study materials and the Dark Mode preference are saved across sessions automatically.
 
 ## ⏱️ Time Spent
-Approx. ~8 hours.
+Approx. ~7.5 hours.
 
-## 🛑 Known Limitations
+ Known Limitations
 - The backend features a single retry loop for schema validation. In rare cases where the model repeatedly fails JSON synthesis, it returns a 422 error.
 - Large input texts might hit LLM context or latency limits. (Timeout is set to 15 seconds).
