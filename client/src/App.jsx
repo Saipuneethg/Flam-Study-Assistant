@@ -1,14 +1,16 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Navbar } from './components/Navbar';
 import { NoteInput } from './components/NoteInput';
 import { SkeletonLoader } from './components/SkeletonLoader';
 import { ErrorState } from './components/ErrorState';
 import { FlashcardStack } from './components/FlashcardStack';
 import { QuizRunner } from './components/QuizRunner';
+import { ConfirmModal } from './components/ConfirmModal';
 import { useAI } from './hooks/useAI';
 
 function App() {
-  const { data, loading, error, generateContent, setData } = useAI();
+  const { data, loading, error, generateContent, setData, setError } = useAI();
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   useEffect(() => {
     const savedData = localStorage.getItem('studyPackageData');
@@ -30,11 +32,21 @@ function App() {
   const handleClearSession = () => {
     localStorage.removeItem('studyPackageData');
     setData(null);
+    setShowConfirmModal(false);
+  };
+
+  const requestClearSession = () => {
+    if (data) {
+      setShowConfirmModal(true);
+    } else {
+      // If there's no data, no need to confirm, though this shouldn't be reachable
+      handleClearSession();
+    }
   };
 
   return (
     <div className="app-container">
-      <Navbar onClear={handleClearSession} />
+      <Navbar onClear={requestClearSession} />
       
       <main className="main-content">
         {!data && !loading && !error && (
@@ -46,7 +58,7 @@ function App() {
           </div>
         )}
 
-        {!data && !loading && (
+        {!data && (
           <NoteInput onSubmit={generateContent} isLoading={loading} />
         )}
 
@@ -55,7 +67,7 @@ function App() {
         {error && (
            <ErrorState 
              error={error} 
-             onRetry={() => window.location.reload()} 
+             onRetry={() => setError(null)} 
            />
         )}
 
@@ -84,11 +96,7 @@ function App() {
             
             <div className="package-actions">
               <button
-                onClick={() => {
-                  if (confirm('Discard current deck and draw a new one?')) {
-                    handleClearSession();
-                  }
-                }}
+                onClick={handleClearSession}
                 className="clear-btn"
               >
                 Draft New Notes
@@ -97,6 +105,13 @@ function App() {
           </div>
         )}
       </main>
+
+      <ConfirmModal
+        isOpen={showConfirmModal}
+        message="Are you sure you want to discard your current deck and draw a new one?"
+        onConfirm={handleClearSession}
+        onCancel={() => setShowConfirmModal(false)}
+      />
     </div>
   );
 }

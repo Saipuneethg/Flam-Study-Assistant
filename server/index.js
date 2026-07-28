@@ -28,14 +28,14 @@ const StudyPackageSchema = z.object({
     id: z.string(),
     question: z.string(),
     answer: z.string(),
-  })).min(5),
+  })).min(2),
   quiz: z.array(z.object({
     id: z.string(),
     question: z.string(),
     options: z.array(z.string()).length(4),
     correctIndex: z.number().min(0).max(3),
     explanation: z.string()
-  })).min(5)
+  })).min(2)
 });
 
 const systemPrompt = `You are an expert AI study assistant. Your goal is to take notes provided by the user and generate a study package.
@@ -58,7 +58,7 @@ The schema is:
     }
   ]
 }
-Flashcards and quiz arrays MUST have at least 5 items each, no matter how brief the notes are. Generate as many high-quality items as possible to thoroughly cover the topic (aim for 10-20+ for detailed notes). CRITICAL: Do not always generate the exact same number of flashcards as quiz questions. Vary the counts independently depending on what best fits the content. Options array MUST have exactly 4 items. correctIndex must be 0-3.`;
+Flashcards and quiz arrays must have at least 2 items each, but the total number of items should vary dynamically based on the length and detail of the user's notes. Generate more questions and cards (e.g., 5-10+) for longer, detailed notes, and fewer (e.g., 2-3) for brief notes, ensuring comprehensive coverage. Options array MUST have exactly 4 items. correctIndex must be 0-3.`;
 
 const fetchWithTimeout = async (apiCall, timeoutMs) => {
   return Promise.race([
@@ -125,8 +125,8 @@ app.post('/api/generate', async (req, res) => {
   }
 });
 
-// Serve static files in production (skip if running as Vercel serverless function)
-if (process.env.NODE_ENV === 'production' && !process.env.VERCEL) {
+// Serve static files in production
+if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, '../client/dist')));
 
   app.get('*', (req, res) => {
@@ -134,12 +134,6 @@ if (process.env.NODE_ENV === 'production' && !process.env.VERCEL) {
   });
 }
 
-// Only listen to port if not running as a Vercel serverless function
-if (!process.env.VERCEL) {
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-  });
-}
-
-// Export for Vercel Serverless
-export default app;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});

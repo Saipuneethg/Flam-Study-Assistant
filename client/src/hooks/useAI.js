@@ -25,8 +25,15 @@ export function useAI() {
         signal: controller.signal,
       });
 
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error || 'Failed to generate study materials');
+      const text = await res.text();
+      let json;
+      try {
+        json = text ? JSON.parse(text) : {};
+      } catch (e) {
+        throw new Error(`Server returned an invalid response (${res.status}). Is the backend running?`);
+      }
+
+      if (!res.ok) throw new Error(json.error || `Failed to generate study materials (${res.status})`);
 
       setData(json.data);
     } catch (err) {
@@ -37,5 +44,5 @@ export function useAI() {
     }
   };
 
-  return { data, loading, error, generateContent, setData };
+  return { data, loading, error, generateContent, setData, setError };
 }

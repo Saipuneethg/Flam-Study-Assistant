@@ -19,16 +19,16 @@ export function QuizRunner({ questions }) {
     } else {
       setFailedQuestions(prev => [...prev, currentQ]);
     }
-
-    setTimeout(() => {
-      if (currentIndex + 1 < activeQuestions.length) {
-        setCurrentIndex(prev => prev + 1);
-        setSelectedOption(null);
-      } else {
-        setIsFinished(true);
-      }
-    }, 1200);
   };
+
+  const handleNext = React.useCallback(() => {
+    if (currentIndex + 1 < activeQuestions.length) {
+      setCurrentIndex(prev => prev + 1);
+      setSelectedOption(null);
+    } else {
+      setIsFinished(true);
+    }
+  }, [currentIndex, activeQuestions.length]);
 
   const handleRetestFailed = () => {
     setActiveQuestions(failedQuestions);
@@ -38,6 +38,31 @@ export function QuizRunner({ questions }) {
     setSelectedOption(null);
     setIsFinished(false);
   };
+
+  React.useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (isFinished) return;
+      
+      if (selectedOption !== null) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          handleNext();
+        }
+        return;
+      }
+      
+      const key = parseInt(e.key, 10);
+      if (key >= 1 && key <= 4) {
+        // Adjust for 0-indexed options
+        const optionIndex = key - 1;
+        if (optionIndex < currentQ.options.length) {
+          handleAnswer(optionIndex);
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isFinished, selectedOption, currentQ, handleNext]);
 
   if (isFinished) {
     return (
@@ -98,6 +123,24 @@ export function QuizRunner({ questions }) {
           );
         })}
       </div>
+
+      {selectedOption !== null && (
+        <div className="quiz-explanation animate-fade-in" style={{ marginTop: '1.5rem', padding: '1rem', borderTop: '1px dashed var(--color-lines)' }}>
+          <p style={{ marginBottom: '1rem', color: selectedOption === currentQ.correctIndex ? 'var(--color-accent)' : 'var(--color-danger)', fontWeight: 'bold' }}>
+            {selectedOption === currentQ.correctIndex ? 'Correct!' : 'Incorrect.'}
+          </p>
+          <p style={{ marginBottom: '1.5rem', fontSize: '0.95rem', color: 'var(--color-ink)' }}>
+            <strong style={{ fontFamily: 'var(--font-mono)' }}>Explanation:</strong> {currentQ.explanation}
+          </p>
+          <button 
+            onClick={handleNext}
+            className="generate-btn"
+            style={{ margin: '0 auto', display: 'block', padding: '0.5rem 1.5rem', fontSize: '0.9rem' }}
+          >
+            [ NEXT ]
+          </button>
+        </div>
+      )}
     </div>
   );
 }
